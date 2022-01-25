@@ -1,0 +1,8 @@
+matplotlib
+numpy
+python-dateutil
+six
+natsort
+seaborn
+pandas
+pathos

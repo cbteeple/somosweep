@@ -1,0 +1,9 @@
+*.pyc
+*.vscode
+*.DS_Store
+*.idea
+.idea
+data
+*.egg-info
+build/
+dist/
