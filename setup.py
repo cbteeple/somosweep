@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 # a dummy setup.py used to reserve the name somo on pypi following
 # https://stackoverflow.com/questions/47676721/register-an-internal-package-on-pypi
