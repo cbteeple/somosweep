@@ -9,7 +9,7 @@ setup(
     description="A utility for running parameter sweeps in SoMo or SoMoGym.",
     long_description=open('README.md').read(),
     long_description_content_type='text/markdown',
-    url="git@github.com:cbteeple/somosweep",
+    url="https://github.com/cbteeple/somosweep",
     author="Clark B. Teeple",
     author_email="cbteeple@gmail.com",
     license='MIT',
