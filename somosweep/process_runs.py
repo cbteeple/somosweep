@@ -21,7 +21,7 @@ from matplotlib import rcParams
 import inspect
 from natsort import natsorted
 
-from somo.sweep import iter_utils
+from somosweep import iter_utils
 
 # from utils import label_functions # Need to fix label functions pipeline to come from example folder
 

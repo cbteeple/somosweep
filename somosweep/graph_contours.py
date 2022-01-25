@@ -20,10 +20,10 @@ import seaborn as sns
 import sys
 
 
-from somo.sweep import iter_utils
+from somosweep import iter_utils
 
 # from utils import label_functions # Need to fix label functions pipeline to come from example folder
-from somo.sweep import DataLabeler
+from somosweep import DataLabeler
 
 
 class ContourPlotter:

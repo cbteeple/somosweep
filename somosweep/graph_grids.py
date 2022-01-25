@@ -16,8 +16,8 @@ from matplotlib.patches import Rectangle
 from matplotlib import rcParams
 import sys
 
-from somo.sweep import iter_utils
-from somo.sweep import DataLabeler
+from somosweep import iter_utils
+from somosweep import DataLabeler
 
 
 class GridPlotter:

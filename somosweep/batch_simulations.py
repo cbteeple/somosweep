@@ -7,7 +7,7 @@ import multiprocessing as mp
 import os
 import sys
 
-from somo.sweep import iter_utils
+from somosweep import iter_utils
 
 
 class BatchSimulation:

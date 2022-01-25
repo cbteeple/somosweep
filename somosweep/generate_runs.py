@@ -9,7 +9,7 @@ import copy
 from functools import reduce  # forward compatibility for Python 3
 import operator
 
-from somo.sweep import iter_utils
+from somosweep import iter_utils
 
 
 class RunGenerator:

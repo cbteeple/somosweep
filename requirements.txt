@@ -6,3 +6,4 @@ natsort
 seaborn
 pandas
 pathos
+somo @ git+https://github.com/graulem/somo
