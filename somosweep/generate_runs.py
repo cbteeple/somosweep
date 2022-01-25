@@ -13,18 +13,17 @@ from somosweep import iter_utils
 
 
 class RunGenerator:
-    def __init__(self):
-        save_paths = iter_utils.load_yaml("save_paths.yaml")
-        self.base_folder = save_paths.get("save_path", "data")
+    def __init__(self, data_path):
+        self.data_path = os.path.abspath(data_path)
 
-    def from_file(self, config_file, todo_filename="runs_todo.yaml"):
+    def from_file(self, config_file):
         """Generate a set of runs from a config file"""
 
         # Read in the configuration and get relavant parameters
         self.config = iter_utils.load_yaml(config_file)
         self.setup = self.config.get("setup", {})
         self.slices_2d = self.setup.get("slices_2d", False)
-        self.todo_filename = todo_filename
+        self.todo_filename = "_runs_todo.yaml"
 
         # Generate the runs
         if self.slices_2d:
@@ -38,8 +37,7 @@ class RunGenerator:
         """Generate all permutations of a given set of sweep parameters"""
 
         # Generate filename
-        folder = iter_utils.get_group_folder(config)
-        print(folder)
+        folder = self.data_path
 
         # Read in the sweep parameters
         sweep = config["sweep"]
@@ -85,12 +83,11 @@ class RunGenerator:
         """Make a simple set of runs using all permutations of sweep parameters"""
 
         # Save a copy of the sweep config in the root folder
-        # config['save']['folder'] = self.base_folder
-        out_folder = config["save"]["group_name"]
-        if not os.path.exists(os.path.join(self.base_folder, out_folder)):
-            os.makedirs(os.path.join(self.base_folder, out_folder))
+        # config['save']['folder'] = self.data_path
+        if not os.path.exists(os.path.join(self.data_path)):
+            os.makedirs(os.path.join(self.data_path))
 
-        out_filename = os.path.join(self.base_folder, out_folder, "config.yaml")
+        out_filename = os.path.join(self.data_path, "config.yaml")
         iter_utils.save_yaml(config, out_filename)
 
         # Generate parameters
@@ -100,21 +97,24 @@ class RunGenerator:
         run_names = []
         for set_num, param_set in enumerate(param_list):
             config_new = copy.deepcopy(config)
+            if config_new.get("save",None) is None:
+                config_new['save'] = {}
             config_new.pop("sweep", None)
             for idx, param in enumerate(param_set):
                 var_name = name_list[idx]
                 iter_utils.set_in_dict(config_new, var_name, param)
 
             config_new["save"]["run_name"] = "param_set_%04d" % (set_num)
-            _, out_folder = iter_utils.generate_save_location(config_new)
+            _, out_folder = iter_utils.generate_save_location(config_new, self.data_path)
             run_filename = os.path.join(out_folder, "params.yaml")
             iter_utils.save_yaml(config_new, run_filename)
 
             run_names.append(run_filename)
 
+        print(" --> with %d unique parameter sets"%(len(run_names)))
         # Save the set of runs todo
         if save_todo:
-            iter_utils.save_yaml(run_names, self.todo_filename)
+            iter_utils.save_yaml(run_names, os.path.join(self.data_path,self.todo_filename))
 
         return run_names
 
@@ -174,14 +174,13 @@ class RunGenerator:
             summary["vars"] = label
             summary["sweep"] = param_list_real
 
-            summary_file = os.path.join(
-                iter_utils.get_group_folder(config), "summary.yaml"
-            )
+            summary_file = os.path.join(self.data_path, "summary.yaml")
 
             iter_utils.save_yaml(summary, summary_file)
 
             # Save the set of runs todo
-            iter_utils.save_yaml(all_runs, self.todo_filename)
+            print(" --> with %d unique parameter sets"%(len(all_runs)))
+            iter_utils.save_yaml(all_runs, os.path.join(self.data_path, self.todo_filename))
 
 
 if __name__ == "__main__":

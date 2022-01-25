@@ -45,14 +45,15 @@ class BatchSimulation:
 
         return True
 
-    def load_run_list(self, todo_filename="runs_todo.yaml", recalculate=False):
-        runs_todo = iter_utils.load_yaml(todo_filename)
+    def load_run_list(self, run_folder, recalculate=False):
+        todo_filename="_runs_todo.yaml"
+        runs_todo = iter_utils.load_yaml(os.path.join(run_folder, todo_filename))
         self.run_params = [
             {"filename": run, "index": idx, "replace": recalculate}
             for run, idx in zip(runs_todo, range(len(runs_todo)))
         ]
 
-    def run(self, run_function, parallel=True, num_processes=None):
+    def run_from_function(self, run_function, parallel=True, num_processes=None):
         # Run experiments
         try:
             iter_utils.add_tmp("_tmp")

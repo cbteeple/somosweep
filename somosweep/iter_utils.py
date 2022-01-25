@@ -92,9 +92,8 @@ def read_parse_data(filename, verbose=False):
 
 
 # Get the folder of the current simulation group
-def get_group_folder(config):
-    save_paths = load_yaml("save_paths.yaml")
-    data_folder = save_paths.get("save_path", "data")
+def get_group_folder(config, data_path):
+    data_folder = data_path
 
     # data_folder = config['save']['folder']
     group_name = config["save"]["group_name"]
@@ -108,12 +107,12 @@ def get_group_folder(config):
 
 
 # Generate the filename and folder name to save data
-def generate_save_location(config, filename="data.dat"):
+def generate_save_location(config, data_path, filename="data.dat"):
     run_name = config["save"].get("run_name", None)
     if run_name is None:
         run_name = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    save_folder = get_group_folder(config)
+    save_folder = data_path #get_group_folder(config, data_path)
     out_folder = os.path.join(save_folder, run_name)
 
     if not os.path.exists(out_folder):
@@ -144,7 +143,7 @@ def get_from_dict(dataDict, mapList):
 
 
 def set_in_dict(dataDict, mapList, value):
-    print(mapList)
+    #print(mapList)
     mapList_use = copy.deepcopy(mapList)
     last_var_idx = None
     if "[" in mapList_use[-1]:
