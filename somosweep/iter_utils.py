@@ -32,15 +32,21 @@ def delete_tmp(tmp="_tmp"):
 
 # Save a yaml file from a dictionary
 def save_yaml(yaml_dict, filename):
-    with open(filename, "w") as f:
-        yaml.dump(yaml_dict, f, default_flow_style=None)
+    try:
+        with open(filename, "w") as f:
+            yaml.dump(yaml_dict, f, default_flow_style=None)
+    except:
+        raise(ValueError("Unable to save yaml: '%s'"%(filename)))
 
 
 # Load a yaml file into a dictionary
 def load_yaml(filename):
-    with open(filename, "r") as f:
-        yaml_dict = yaml.safe_load(f)
-    return yaml_dict
+    try:
+        with open(filename, "r") as f:
+            yaml_dict = yaml.safe_load(f)
+        return yaml_dict
+    except:
+        raise(ValueError("Unable to open yaml: '%s'"%(filename)))
 
 
 # Recursively get all files with a specific extension, excluding a certain suffix

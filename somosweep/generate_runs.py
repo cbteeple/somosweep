@@ -8,33 +8,77 @@ import itertools
 import copy
 from functools import reduce  # forward compatibility for Python 3
 import operator
+import warnings
 
 from somosweep import iter_utils
 
 
 class RunGenerator:
+    """
+    Set up a sweep by autogenerating the correct
+    filestructure and config files
+
+    Attributes
+    ----------
+    data_path : str
+        Path to the desired save location
+
+    Examples
+    --------
+    >>> data_path = "data/sim_sweep"
+    ... sweep_config = 'sweeps/sweep.yaml'
+    ... run_gen = somosweep.RunGenerator(data_path)
+    ... run_gen.from_file(sweep_config)
+    """
     def __init__(self, data_path):
         self.data_path = os.path.abspath(data_path)
 
-    def from_file(self, config_file):
-        """Generate a set of runs from a config file"""
 
+    def from_file(self, config_file):
+        """
+        Generate a set of run configs using a sweep config
+
+        Parameters
+        ----------
+        config_file : str
+            Filename of the desired config file
+        """
         # Read in the configuration and get relavant parameters
         self.config = iter_utils.load_yaml(config_file)
         self.setup = self.config.get("setup", {})
-        self.slices_2d = self.setup.get("slices_2d", False)
         self.todo_filename = "_runs_todo.yaml"
 
+        if self.setup.get("slices_2d", False):
+            warnings.warn("Generating 2D slices is no longer supported. \
+               Using simple generation instead. \
+               You can use pandas to slice data afterward")
+
         # Generate the runs
-        if self.slices_2d:
-            print("Generating a series of 2D slices")
-            self.make_2d_slices(self.config)
-        else:
-            print("Generating a simple set of runs")
-            self.make_simple(self.config)
+        print("Generating run configs")
+        self.make_simple(self.config)
+
 
     def generate_params(self, config):
-        """Generate all permutations of a given set of sweep parameters"""
+        """
+        Generate all permutations of a given set of sweep parameters
+
+        Parameters
+        ----------
+        config : dict
+            Sweep config dictionary to use
+
+        Returns
+        -------
+        param_list : itertools.product
+            A itrable object with all parameter sets (permutations of
+            parameter values)
+        name_list : list
+            List of all parameter names (in the order the permutation
+            is generated)
+        permute_list : list(list)
+            The list of parameter values, one inner list for each parameter.
+            This list is used to generate `param_list`
+        """
 
         # Generate filename
         folder = self.data_path
@@ -79,11 +123,24 @@ class RunGenerator:
 
         return param_list, name_list, permute_list
 
-    def make_simple(self, config, save_todo=True):
-        """Make a simple set of runs using all permutations of sweep parameters"""
 
+    def make_simple(self, config, save_todo=True):
+        """
+        Make a simple set of runs using all permutations of sweep parameters
+
+        Parameters
+        ----------
+        config : dict
+            Sweep config file to use
+        save_todo : bool
+            Decide whether to save the list of runs to do in a file.
+
+        Returns
+        -------
+        run_names : list
+            List of filenames for every config file generated.
+        """
         # Save a copy of the sweep config in the root folder
-        # config['save']['folder'] = self.data_path
         if not os.path.exists(os.path.join(self.data_path)):
             os.makedirs(os.path.join(self.data_path))
 
@@ -117,73 +174,3 @@ class RunGenerator:
             iter_utils.save_yaml(run_names, os.path.join(self.data_path,self.todo_filename))
 
         return run_names
-
-    def make_2d_slices(self, config):
-        """Make a simple set of runs using all permutations of sweep parameters"""
-
-        # Get the sweep settings
-        sweep = config["sweep"]
-
-        num_vars = len(sweep)
-
-        # Create inner and outer parameter sets to condese things down into 2D slices
-        if num_vars > 2:
-            config_inner = copy.deepcopy(config)
-            config_inner["sweep"] = config_inner["sweep"][num_vars - 2 :]
-
-            config_outer = copy.deepcopy(config)
-            config_outer["sweep"] = config_outer["sweep"][0 : num_vars - 2]
-
-            param_list, name_list, param_values = self.generate_params(config_outer)
-
-            param_list_real = []
-            all_runs = []
-            for param_idx, param_set in enumerate(param_list):
-                # Create a new config file that only has two sweep parameters
-
-                param_list_real.append(param_set)
-                config_new = copy.deepcopy(config_inner)
-
-                var_str = ""
-                for idx, param in enumerate(param_set):
-                    var_name = name_list[idx]
-                    iter_utils.set_in_dict(config_new, var_name, param)
-
-                    for piece in var_name:
-                        var_str += "__" + piece
-                    var_str = var_str[0:]
-                    var_str = var_str.strip(" ")
-                    if isinstance(param, str):
-                        curr_idx = param_values[idx].index(param)
-                        var_str = var_str + "_%04d" % (curr_idx)
-                    else:
-                        var_str = var_str + "_%0.4f" % (param)
-
-                group_ext = "/" + var_str
-                config_new["save"]["group_name"] += group_ext
-
-                # Make a simple sweep with the new 2D config
-                run_names = self.make_simple(config_new, save_todo=False)
-
-                all_runs.extend(run_names)
-
-            label = []
-            for vari in config_outer["sweep"]:
-                label.append(vari["label"])
-            summary = {}
-            summary["vars"] = label
-            summary["sweep"] = param_list_real
-
-            summary_file = os.path.join(self.data_path, "summary.yaml")
-
-            iter_utils.save_yaml(summary, summary_file)
-
-            # Save the set of runs todo
-            print(" --> with %d unique parameter sets"%(len(all_runs)))
-            iter_utils.save_yaml(all_runs, os.path.join(self.data_path, self.todo_filename))
-
-
-if __name__ == "__main__":
-    config_file = "sweeps/grid_design_grasps.yaml"
-    run_gen = RunGenerator()
-    run_gen.from_file(config_file)
