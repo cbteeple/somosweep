@@ -77,7 +77,7 @@ class RunGenerator:
             is generated)
         permute_list : list(list)
             The list of parameter values, one inner list for each parameter.
-            This list is used to generate `param_list`
+            This list is used to generate ``param_list``
         """
 
         # Generate filename
