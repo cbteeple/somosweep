@@ -52,8 +52,6 @@ def run_expert_trajectory(
         print(f"CRITICAL ERROR: Invalid environment '{environment_name}' selected.")
         sys.exit(1)
 
-    curr_id = run_config["env_id"].split("-")[0] + "-v%d"%(run_config['run_index'])
-
     env = gym.make(
         run_config["env_id"],
         run_config=run_config,
