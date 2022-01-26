@@ -16,7 +16,7 @@ sweep:
 
 action_time: 0.01
 bullet_time_step: 0.0004
-max_episode_steps: 1000
+max_episode_steps: 300
 env_id: SoMoGymExampleEnv-v0
 max_torque_rate: 130
 observation_flags:

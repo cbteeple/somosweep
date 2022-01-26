@@ -10,6 +10,7 @@ from somo.utils import load_constrained_urdf
 from environments import SomoEnv
 from environments.SoMoGymExampleEnv.env_utils import box_start_funcs
 
+from somosweep import iter_utils
 
 class SoMoGymExampleEnv(SomoEnv.SomoEnv):
     def __init__(
@@ -29,10 +30,20 @@ class SoMoGymExampleEnv(SomoEnv.SomoEnv):
             "definitions/IHM_finger.yaml",  # RANDY: to change finger properties, adjust this yaml file
         )
         manipulator_def = SMManipulatorDefinition.from_file(manipulator_def_file)
-        manipulator_def.urdf_filename = os.path.join(
-            os.path.dirname(__file__),
-            "definitions/" + manipulator_def.manipulator_name + ".urdf",
-        )
+
+        # If we are using a tmp directory to store URDFs, handle that (important for multi-processing)
+        run_index = run_config.get('run_index',0)
+        manip_urdf_path = run_config.get('tmp_path',None)
+        if manip_urdf_path is not None:
+            manipulator_def.urdf_filename = os.path.join(manip_urdf_path, manipulator_def.manipulator_name + ".urdf",)
+            manipulator_def.urdf_filename = iter_utils.auto_inc_file(manipulator_def.urdf_filename, index=run_index)
+        
+        # Otherwise just place the URDF next to the definition.
+        else:
+            manipulator_def.urdf_filename = os.path.join(
+                os.path.dirname(__file__),
+                "definitions/" + manipulator_def.manipulator_name + ".urdf",
+            )
 
         active_actuators_list = [([0, 0], [0, 1])] * n_manipulators
         manipulators = [
@@ -182,7 +193,6 @@ class SoMoGymExampleEnv(SomoEnv.SomoEnv):
         done = np.linalg.norm(self.box_pos - self.box_start_pos) >= boundary
         return done
 
-
     # Get column labels for the observation data
     def get_observation_labels(self):
         flags = self.run_config["observation_flags"]
@@ -220,7 +230,6 @@ class SoMoGymExampleEnv(SomoEnv.SomoEnv):
             num_pts = flags[f] if flags[f] is not None else 1
             obs_len += num_pts * obs_dimension_per_sample[f]
         return (obs_len,)
-
 
     def get_observation(self):
         obs_flags = self.run_config["observation_flags"]
@@ -304,9 +313,6 @@ class SoMoGymExampleEnv(SomoEnv.SomoEnv):
             state = np.concatenate((state, applied_input_torques.flatten()))
 
         return state
-
-    def get_logger_data(self):
-        pass
 
     def get_reward(self, *args, **kwargs):
         if (

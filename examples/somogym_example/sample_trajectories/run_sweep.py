@@ -1,4 +1,5 @@
-# Invoke the example using command:
+# Invoke the example using command (first navigate to "sample_trajectories"):
+#
 #  * Clean the data  (if nessecary):
 #      python run_sweep.py -env "SoMoGymExampleEnv" -t "SoMoGymExampleEnv-test" -s "sweeps/arrangement_sweep.yaml" -clean
 #
@@ -8,11 +9,12 @@
 #  * Run the sweep (skipping runs that have already generated data):
 #     python run_sweep.py -env "SoMoGymExampleEnv" -t "SoMoGymExampleEnv-test" -s "sweeps/arrangement_sweep.yaml" -run
 #
+#  * Run the sweep (skipping runs that have already generated data) with the visualizer:
+#     python run_sweep.py -env "SoMoGymExampleEnv" -t "SoMoGymExampleEnv-test" -s "sweeps/arrangement_sweep.yaml" -run -v
+#
 #  * Run the sweep (force overwrite of existing data):
 #     python run_sweep.py -env "SoMoGymExampleEnv" -t "SoMoGymExampleEnv-test" -s "sweeps/arrangement_sweep.yaml" -run --force
 #
-# NOTE: You can copy this run file into the "sample_trajectories"
-# folder in the somogym repo and set up your own sweeps this way.
 
 
 from math import ceil
@@ -50,10 +52,12 @@ def run_expert_trajectory(
         print(f"CRITICAL ERROR: Invalid environment '{environment_name}' selected.")
         sys.exit(1)
 
+    curr_id = run_config["env_id"].split("-")[0] + "-v%d"%(run_config['run_index'])
+
     env = gym.make(
         run_config["env_id"],
         run_config=run_config,
-        run_ID=str(run_config["expert_name"]),
+        run_ID=run_config['save']['run_name'],
         render=run_render,
         debug=debug,
     )
@@ -133,6 +137,9 @@ class RunExperiment():
         self.env_name = env_name
         self.expert_name = expert_name
         self.expert_rel_path = expert_rel_path
+
+    
+    # Define what happens when the class is called.
     def __call__(self, sweep_args):
         config_filename = sweep_args["filename"] # Filename where run config is stored
         config = somosweep.iter_utils.load_yaml(config_filename)
@@ -153,6 +160,8 @@ class RunExperiment():
         config['expert_name'] = self.expert_name
         config['expert_rel_path'] = self.expert_rel_path
         config['log_path'] = os.path.dirname(config_filename)
+        config['tmp_path'] = sweep_args["tmp_path"]
+        config['run_index'] = index
 
         # Run the simulations
         data, data_labels = run_expert_trajectory(
@@ -295,8 +304,8 @@ def main():
         batchsim.load_run_list(data_path, recalculate=arg.force)
         batchsim.run_from_function(
             run_function=experiment_runner,
-            parallel=False,
-            num_processes=4
+            parallel=True,
+            num_processes=None, # set the number of processes to use, otherwise use 1 per cpu core
         )
 
 
