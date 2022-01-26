@@ -5,11 +5,6 @@ import yaml
 import copy
 from functools import reduce  # forward compatibility for Python 3
 import operator
-import numpy as np
-import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib import rcParams
-import seaborn as sns
 from natsort import natsorted
 from somo.logger import LogReader
 

@@ -1,9 +1,5 @@
-matplotlib
-numpy
 python-dateutil
 six
 natsort
-seaborn
-pandas
 pathos
 somo @ git+https://github.com/graulem/somo
