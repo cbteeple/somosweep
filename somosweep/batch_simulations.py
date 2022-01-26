@@ -13,6 +13,7 @@ from somosweep import iter_utils
 class BatchSimulation:
     def __init__(self):
         self.num_cpus = os.cpu_count()
+        self.tmp_path = "_tmp"
 
     def mute(self):
         sys.stdout = open(os.devnull, "w")
@@ -21,10 +22,9 @@ class BatchSimulation:
     def _run_parallel(self, run_function, num_processes=None):
         """Run the batch with parallel processing"""
 
-        # Use one less than the number of processors you have
-        # (so you can still use your computer while this runs)
+        # Use all processors
         if num_processes is None:
-            num_processes = self.num_cpus - 1
+            num_processes = self.num_cpus
 
         elif num_processes > self.num_cpus:
             print(
@@ -49,14 +49,14 @@ class BatchSimulation:
         todo_filename="_runs_todo.yaml"
         runs_todo = iter_utils.load_yaml(os.path.join(run_folder, todo_filename))
         self.run_params = [
-            {"filename": run, "index": idx, "replace": recalculate}
+            {"filename": run, "index": idx, "replace": recalculate, "tmp_path": self.tmp_path}
             for run, idx in zip(runs_todo, range(len(runs_todo)))
         ]
 
     def run_from_function(self, run_function, parallel=True, num_processes=None):
         # Run experiments
         try:
-            iter_utils.add_tmp("_tmp")
+            iter_utils.add_tmp(self.tmp_path)
             start = time.time()
             if parallel:
                 self._run_parallel(run_function, num_processes)
@@ -64,7 +64,7 @@ class BatchSimulation:
                 self._run_sequential(run_function)
 
             end = time.time()
-            iter_utils.delete_tmp("_tmp")
+            iter_utils.delete_tmp(self.tmp_path)
 
             print("____________________________")
             print(
@@ -75,4 +75,4 @@ class BatchSimulation:
 
         except KeyboardInterrupt:
             print("\n" + "BATCH TERMINATED EARLY")
-            iter_utils.delete_tmp("_tmp")
+            iter_utils.delete_tmp(self.tmp_path)
