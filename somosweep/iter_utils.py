@@ -100,7 +100,7 @@ def get_files_recursively(start_directory, filter_extension=None):
                 yield (root, file, os.path.abspath(os.path.join(root, file)))
 
 
-def scrape_folder(directory, filter_extensions=[], file_blacklist=[]):
+def scrape_folder(directory, filter_extensions=[], file_blacklist=[], recursive=True):
     """
     Recursively get all files with a specific extension
 
@@ -113,6 +113,8 @@ def scrape_folder(directory, filter_extensions=[], file_blacklist=[]):
         these extension)
     file_blacklist : list
         List of filenames to explicitly exclude
+    recursive : bool
+        Choose whether to scrape folder recursively
 
     Returns
     -------
@@ -122,8 +124,11 @@ def scrape_folder(directory, filter_extensions=[], file_blacklist=[]):
     directory_usr = os.path.expanduser(directory)
     val_list = []
     if os.path.isdir(directory_usr):
-        dir_list = os.listdir(directory_usr)
-        dir_list = natsorted(dir_list)
+        if recursive:
+            dir_list = get_files_recursively(directory_usr)
+        else:
+            dir_list = os.listdir(directory_usr)
+            dir_list = natsorted(dir_list)
         for f in dir_list:
             ext = os.path.splitext(f)[-1].lower()
             ext_accept = not filter_extensions or ext in filter_extensions
@@ -132,6 +137,9 @@ def scrape_folder(directory, filter_extensions=[], file_blacklist=[]):
             )
             if ext_accept and file_accept:
                 val_list.append(os.path.join(directory, f))
+
+        if recursive:
+            val_list = natsorted(val_list)
     return val_list
 
 
