@@ -6,7 +6,6 @@ import copy
 from functools import reduce  # forward compatibility for Python 3
 import operator
 from natsort import natsorted
-from somo.logger import LogReader
 
 
 def add_tmp(tmp="_tmp"):
@@ -125,7 +124,8 @@ def scrape_folder(directory, filter_extensions=[], file_blacklist=[], recursive=
     val_list = []
     if os.path.isdir(directory_usr):
         if recursive:
-            dir_list = get_files_recursively(directory_usr)
+            dir_list_iter = get_files_recursively(directory_usr)
+            dir_list = [f for _,_,f in dir_list_iter]
         else:
             dir_list = os.listdir(directory_usr)
             dir_list = natsorted(dir_list)
@@ -170,28 +170,6 @@ def get_folders(directory, blacklist=[]):
             if folder_accept and blacklist_accept:
                 val_list.append(os.path.join(directory, f))
     return val_list
-
-
-# Parse data from a file
-def read_parse_data(filename, verbose=False):
-    """
-    Read data from a pybullet log file.
-
-    Parameters
-    ----------
-    filename : str
-        Filename to read
-    verbose : bool
-        Show all the inner working of the log parser.
-
-    Returns
-    -------
-    reader : LogReader
-        Log reader object
-    """
-    reader = LogReader()
-    reader.read(filename, verbose)
-    return reader
 
 
 # Get the folder of the current simulation group
